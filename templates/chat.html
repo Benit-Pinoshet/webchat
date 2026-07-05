@@ -153,7 +153,7 @@
             const meuNome = localStorage.getItem("usuarioNome");
             const minhaCor = localStorage.getItem("usuarioCor");
             window.onload = function() {
-                const socket = io('http://127.0.0.1:5000');
+                const socket = io();
     
                 socket.on('connect', () => {
                     socket.send("entrando...");
