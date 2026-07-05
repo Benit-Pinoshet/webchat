@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Chat</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            box-sizing: border-box;
+            font-family: sans-serif;
+            color: #f2f2f2;
+        }
+        body{
+            background: url("../static/img/background.jpg");
+            background-attachment: fixed;
+            background-position: center;
+            width: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background-color: rgb(244, 244, 244);
+            justify-content: space-between;
+            position: relative;
+        }
+        ::-webkit-scrollbar{
+            width: 10px;
+            height: 25px;
+        }
+        ::-webkit-scrollbar-track{
+            background: none;
+        }
+
+        ::-webkit-scrollbar-thumb{
+            background: #969696;
+            cursor: pointer;
+        }
+
+        ::-webkit-scrollbar-thumb:hover{
+            background: #ababab;
+        }
+        .chat{
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            flex: 1;
+            padding: 30px 30px 80px;
+            justify-content: flex-end;
+        }
+        form{
+            background-color: #191919;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+        input{
+            padding: 10px;
+            font-size: 12pt;
+            font-weight: 500;
+            background-color: #121212;
+            color: #f2f2f2;
+            border-radius: 5px;
+            flex: 1;
+            background-color: #212121;
+        }
+        button{
+            padding: 10px;
+            font-size: 12pt;
+            font-weight: 500;
+            background-color: #f2f2f2;
+            color: #121212;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .chat > div{
+            padding: 10px;
+            width: 100%;
+            max-width: 340px;
+            font-size: 11pt;
+            font-weight: 500;
+            margin-bottom: 15px;
+            line-height: 22px;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .mensagem-alerta{
+            font-size: 10pt;
+            font-weight: 300;
+            margin-bottom: 15px;
+            color: #f2f2f2;
+            align-self: center;
+            text-align: center;
+            white-space: wrap;
+            max-width: 230px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .minha-mensagem{
+            color: #121212;
+            background-color: #f2f2f2;
+            border-radius: 10px 10px 0px 10px;
+            align-self: flex-end;
+        }
+        .mensagem-outro{
+            background-color: #333;
+            color: #f2f2f2;
+            border-radius: 0px 10px 10px 10px;
+            align-self: flex-start;
+        }
+        .mensagem-texto{
+            font-size: 11pt;
+            color: #f2f2f2;
+        }
+        .emissor-mensagem{
+            display: block;
+            margin-bottom: 6px;
+            font-size: 10pt;
+            font-weight: 700;
+            color: rgb(255, 59, 45);
+            white-space: nowrap;
+            max-width: 85%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+    <script>
+        if(!localStorage.getItem("usuarioLogado")){
+            window.location.href = "/";
+        }
+    </script>
+</head>
+<body>
+    <div class="chat">
+    </div>
+    
+    <form>
+        <input type="text" placeholder="Insira sua mensagem">
+        <button type="submit">Enviar</button>
+    </form>
+    <script src="../static/js/socket.io.min.js"></script>
+    <script>
+        if(localStorage.getItem("usuarioLogado")){
+            const meuId = localStorage.getItem("usuarioId");
+            const meuNome = localStorage.getItem("usuarioNome");
+            const minhaCor = localStorage.getItem("usuarioCor");
+            window.onload = function() {
+                const socket = io('http://127.0.0.1:5000');
+    
+                socket.on('connect', () => {
+                    socket.send("entrando...");
+                    socket.emit('sendMessage', { id: meuId, nome: meuNome, cor: minhaCor, mensagem: `${meuNome} entrou`, bemVindo: true });
+                });
+    
+                document.querySelector("form").addEventListener("submit", (e) => {
+                    e.preventDefault();
+    
+                    socket.emit('sendMessage', { id: meuId, nome: meuNome, cor: minhaCor, mensagem: e.target[0].value, bemVindo: false });
+    
+                    e.target[0].value = "";
+                });
+
+                const scrollScreen = () => {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: "smooth"
+                    })
+                }
+    
+                socket.on('getMessage', (msg) => {
+                    if(msg.bemVindo && msg.id === meuId){
+                        const span = document.createElement("span");
+                        span.classList.add("mensagem-alerta");
+                        span.textContent = "Voce entrou";
+                        document.querySelector(".chat").appendChild(span);
+                        scrollScreen();
+                    } else if(msg.bemVindo && msg.id != meuId){
+                        const span = document.createElement("span");
+                        span.classList.add("mensagem-alerta");
+                        span.textContent = msg.mensagem;
+                        document.querySelector(".chat").appendChild(span);
+                        scrollScreen();
+                    } else if(!msg.bemVindo && msg.id === meuId){
+                        const div = document.createElement("div");
+                        div.classList.add("minha-mensagem");
+                        div.textContent = msg.mensagem;
+                        document.querySelector(".chat").appendChild(div);
+                        scrollScreen();
+                    } else if(!msg.bemVindo && msg.id != meuId){
+                        const div = document.createElement("div");
+                        div.classList.add("mensagem-outro");
+                        const spanOutroNome = document.createElement("span");
+                        spanOutroNome.classList.add("emissor-mensagem");
+                        spanOutroNome.textContent = msg.nome;
+                        spanOutroNome.style.color = `${msg.cor}`;
+                        const mensagemTexto = document.createElement("span");
+                        mensagemTexto.classList.add("mensagem-texto");
+                        mensagemTexto.textContent = msg.mensagem;
+                        div.appendChild(spanOutroNome);
+                        div.appendChild(mensagemTexto);
+                        document.querySelector(".chat").appendChild(div);
+                        scrollScreen();
+                    }
+                });
+    
+                socket.on('message', (msgs) => {
+                    msgs.forEach(msg => {
+                        if(msg.bemVindo){
+                            return
+                        } else if(!msg.bemVindo && msg.id === meuId){
+                            const div = document.createElement("div");
+                            div.classList.add("minha-mensagem");
+                            div.textContent = msg.mensagem;
+                            document.querySelector(".chat").appendChild(div);
+                            scrollScreen();
+                        } else if(!msg.bemVindo && msg.id != meuId){
+                            const div = document.createElement("div");
+                            div.classList.add("mensagem-outro");
+                            const spanOutroNome = document.createElement("span");
+                            spanOutroNome.classList.add("emissor-mensagem");
+                            spanOutroNome.textContent = msg.nome;
+                            spanOutroNome.style.color = `${msg.cor}`;
+                            const mensagemTexto = document.createElement("span");
+                            mensagemTexto.classList.add("mensagem-texto");
+                            mensagemTexto.textContent = msg.mensagem;
+                            div.appendChild(spanOutroNome);
+                            div.appendChild(mensagemTexto);
+                            document.querySelector(".chat").appendChild(div);
+                            scrollScreen();
+                        }
+                    });
+                });
+    
+            };
+        } else{
+            window.location.href = "/";
+        }
+
+    </script>
+</body>
+</html>

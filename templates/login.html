@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login FlaskChat</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        body{
+            background: url("../static/img/background.jpg");
+            width: 100%;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgb(244, 244, 244);
+        }
+        div{
+            width: 95%;
+            max-width: 330px;
+            background-color: #212121;
+            border-radius: 5px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        div > span{
+            margin-bottom: 20px;
+            font-weight: 600;
+            width: 100%;
+            text-align: center;
+            font-size: 15pt;
+            color: #f2f2f2;
+        }
+        form{
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+        .nome{
+            padding: 8px 10px;
+            font-size: 12pt;
+            font-weight: 500;
+            background-color: #121212;
+            color: #f2f2f2;
+            border-radius: 5px;
+        }
+        .nome:focus{
+            outline: 2px solid #f2f2f2;
+        }
+        button{
+            padding: 7px;
+            font-size: 12pt;
+            font-weight: 600;
+            background-color: #ddd;
+            color: #121212;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover{
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <span>Login</span>
+        <form>
+            <input type="text" class="nome" placeholder="Seu nome" required/>
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+    <script>
+        const form = document.querySelector("form");
+        const nome = form.querySelector(".nome");
+
+        const cores = [
+            "rgb(110, 182, 184)",
+            "rgb(0, 247, 255)",
+            "#ffffff",
+            "rgb(82, 114, 255)",
+            "rgb(82, 255, 131)",
+            "rgb(255, 82, 82)",
+            "rgb(255, 163, 82)",
+            "rgb(246, 255, 82)",
+            "rgb(143, 255, 45)",
+            "rgb(255, 59, 45)",
+            "gold"
+        ]
+
+        const escolherCor = () => {
+            const indiceAleatorio = Math.floor(Math.random() * cores.length);
+            return cores[indiceAleatorio];
+
+        }
+
+        const usuario = { id: "", nome: "", cor: "" }
+
+        const enviarSubmit = (e) => {
+            e.preventDefault();
+
+            if(nome.value.length > 1){
+                usuario.id = crypto.randomUUID();
+                usuario.nome = nome.value;
+                usuario.cor = escolherCor();
+                localStorage.setItem("usuarioNome", usuario.nome);
+                localStorage.setItem("usuarioId", usuario.id);
+                localStorage.setItem("usuarioCor", usuario.cor);
+                localStorage.setItem("usuarioLogado", true);
+
+                window.location.href = "/chat";
+            }
+
+        }
+
+        form.addEventListener("submit", enviarSubmit);
+    </script>
+</body>
+</html>
